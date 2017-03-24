@@ -19,8 +19,11 @@ def post_meta(json_script):
 def make_soup(postid):
     while True:
         try:
-            url = urllib.request.urlopen('http://www.instagram.com/p/' + postid)
-            
+            url = urllib.request.urlopen('http://www.instagram.com/p/' + postid) 
             return BS.soup(url, 'lxml')
-        except URLError or ConnectionError as e:
+        except URLError as e: #FIXMEx
             return "There was an error. Please try again."
+        else:
+            print("Link parsed successfully!")
+            break
+    
