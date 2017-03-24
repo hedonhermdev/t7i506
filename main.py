@@ -1,5 +1,5 @@
 #IMPORTS
-from bs4 import BeautifulSoup as soup
+from bs4 import BeautifulSoup as BS
 import urllib.request
 import tkinter as Tk
 import json
@@ -15,3 +15,12 @@ def post_meta(json_script):
         'num_of_comments' : data['comments']['count'],
         'comments' : [(c['user']['username'], c['text']) for c in data['comments']['nodes']]
     }
+
+def make_soup(postid):
+    while True:
+        try:
+            url = urllib.request.urlopen('http://www.instagram.com/p/' + postid)
+            
+            return BS.soup(url, 'lxml')
+        except URLError or ConnectionError as e:
+            return "There was an error. Please try again."
