@@ -1,6 +1,6 @@
 #IMPORTS
 from bs4 import BeautifulSoup as BS
-import urllib.request
+import urllib.request, urllib.error
 import tkinter as Tk
 import json
 
@@ -21,9 +21,5 @@ def make_soup(postid):
         try:
             url = urllib.request.urlopen('http://www.instagram.com/p/' + postid) 
             return BS.soup(url, 'lxml')
-        except URLError as e: #FIXMEx
-            return "There was an error. Please try again."
-        else:
-            print("Link parsed successfully!")
-            break
-    
+        except (urllib.error.URLError, urllib.error.HTTPError) as e: #FIXME
+            return "There was an error. Please try again. Error code : %i" % e.code
