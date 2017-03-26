@@ -5,8 +5,8 @@ import urllib.request, urllib.error
 import tkinter as Tk
 import json
 #MEDIA META
-def post_meta(json_script):
-    data = json.loads(json_script)['entry_data']['PostPage'][0]["media"]
+def post_meta(json_script): #DOES NOT HANDLE null VALUES
+    data = json.load(json_script)['entry_data']['PostPage'][0]["media"]
     return {
         'media' : data['display_src'],
         'caption' : data['caption'],
@@ -27,4 +27,5 @@ def get_data(postid):
             return "There was an error. Please try again. Error code : %i" % e.code
         else:
             break
-print(get_data('BQ0gGg2jr1W'))
+print(post_meta('test.json'))
+
