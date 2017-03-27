@@ -7,12 +7,12 @@ import json
 def post_meta(json_dict):
     data = json_dict['entry_data']['PostPage'][0]["media"] 
     return {
-        'media' : data['display_src'],
+        'Media' : data['display_src'],
         'caption' :u'%s' % data['caption'],
-        'date' : data['date'],
-        'num_of_likes' : data['likes'],
-        'num_of_comments' : data['comments']['count'],
-        'comments' : [u"@%s : %s" % (c['user']['username'], c['text']) for c in data['comments']['nodes']]
+        'Date' : data['date'],
+        'Number of likes' : data['likes'],
+        'Number of comments' : data['comments']['count'],
+        'Comments' : [u"@%s : %s" % (c['user']['username'], c['text']) for c in data['comments']['nodes']]
     }
 
 def get_data(postid):
