@@ -1,6 +1,7 @@
-# pylint: disable=C0321, C0111, C0301, C0103
+# pylint: disable=I0011, C0321, C0111, C0301, C0103
 # IMPORTS
 import json
+import os
 import re
 import urllib.error
 import urllib.request
@@ -10,8 +11,9 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 class Post(object):
     def __init__(self, id):
-        self.id = id
-    # MEDIA META
+        self.id = id  # POST_ID
+    # MEDIA meta
+
     def post_meta(self):
         try:
             data = self.get_data()['entry_data']['PostPage'][0]["media"]
@@ -21,8 +23,8 @@ class Post(object):
                 'Date': data['date'],
                 'Number of likes': data['likes']['count'],
                 'Number of comments': data['comments']['count'],
-                'Comments': [u"@%s : %s" % (c['user']['username'], c['text']) for c in data['comments']['nodes']],
-                'Code' : data['code']
+                'Comments': [u"@%s :: %s" % (c['user']['username'], c['text']) for c in data['comments']['nodes']],
+                'Code': data['code']
             }
         except KeyError:
             return 0
@@ -45,25 +47,43 @@ class Post(object):
             else:
                 break
 
+    def createdir(self):
+        if not os.path.exists(self.id):
+            os.makedirs(self.id)
     # Save data in a text file.
-    def writetofile(self, fn):
-        with open(fn, 'w') as f:
+
+    def writetofile(self):
+        self.createdir()
+        fn = self.id + '.txt'
+        with open(os.path.join(self.id, fn), 'w') as f:
             if self.post_meta():
                 meta = self.post_meta()
                 f.write("***\n\n")
                 # Caption
-                f.write('Caption: %s \n' % meta['Caption'])
+                f.write('Caption: \n --%s \n' % meta['Caption'])
                 # Number of Likes
-                f.write('Number of likes: %i \n' % meta['Number of likes'].encode('ascii', 'ignore').decode('windows-1252'))
-                #Number of Comments
-                f.write('Number of comments: %i \n' % meta['Number of comments'])
-                #Comments
-                f.write('Comments: ')
+                f.write('Number of likes: \n --%i \n' %
+                        meta['Number of likes'])
+                # Number of Comments
+                f.write('Number of comments: \n --%i \n' %
+                        meta['Number of comments'])
+                # Comments
+                f.write('Comments: \n')
                 for c in meta['Comments']:
                     s = c.encode('ascii', 'ignore').decode('windows-1252')
-                    f.write(s + '\n')
+                    f.write("   --" + s + '\n')
+            else:
+                f.write("ERROR: No data found for the post(ID=%s)." % self.id)
 
-    #Save Media locally
+    # Save Media locally
     def save_media(self):
+        print("Loading...")
+        self.createdir()
+        fn = self.id + '.jpg'
         if self.post_meta():
-            urllib.request.urlretrieve(self.post_meta()['Media'], self.post_meta()['Code'])
+            urllib.request.urlretrieve(
+                self.post_meta()['Media'], os.path.join(self.id, fn))
+            print("Done.")
+            print("\nMedia saved. \n")
+        else:
+            print('ERROR: No media found for the given post(ID=%s).' % self.id)
