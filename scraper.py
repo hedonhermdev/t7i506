@@ -21,13 +21,14 @@ def get_data(page_id):
             for sc in scripts:
                 if re.compile('^window._sharedData').search(str(sc.string)):
                     return json.loads(str(sc.string)[21:-1])
-        except (urllib.error.URLError, urllib.error.HTTPError, ConnectionError, ) as e:  # IMPROVE!
-            print(str(e))
+        except (urllib.error.URLError, urllib.error.HTTPError, ConnectionError):  # IMPROVE!
+            print("Failed to open the webpage.")
             return json.loads("{}")
         else:
             break
 
-def createdir(foldername):
+
+def createdir(foldername): ##Make new Folder
     if not os.path.exists(foldername):
         os.makedirs(foldername)
 
@@ -36,14 +37,16 @@ def createdir(foldername):
 
 class PostPage(object):
     def __init__(self, page_id):
-        self.page_id = '/p' + page_id  # POST_page_id
-        self.data = get_data(page_id)
+        self.page_id = page_id  # POST_page_id
+        self.data = get_data('p/' + self.page_id)
+        self.meta = self.post_meta()
     # MEDIA meta
 
     def post_meta(self):
         try:
             data = self.data['entry_data']['PostPage'][0]["media"]
             return {
+                'User' : data['owner']['username'],
                 'Media': data['display_src'],
                 'Caption': u'%s' % data['caption'],
                 'Date': data['date'],
@@ -53,17 +56,17 @@ class PostPage(object):
                 'Code': data['code']
             }
         except KeyError:
-            return 0
+            return {}
 
     # Save data in a text file.
 
     def writetofile(self):
-        createdir(self.page_id)
+        createdir(self.meta['User'] + '/' + self.page_id)
         fn = self.page_id + '.txt'
-        with open(os.path.join(self.page_id, fn), 'w') as f:
-            if self.post_meta():
+        with open(os.path.join(self.meta['User'], self.page_id, fn), 'w') as f:
+            if self.meta:
                 meta = self.post_meta()
-                f.write("***\n\n")
+                f.write("   ***    \n")
                 # Caption
                 f.write('Caption: \n --%s \n' % meta['Caption'])
                 # Number of Likes
@@ -84,11 +87,11 @@ class PostPage(object):
     # Save Media locally
     def save_media(self):
         print("Loading...")
-        createdir(self.page_id)
+        createdir(self.meta['User'] + '/' + self.page_id)
         fn = self.page_id + '.jpg'
         if self.post_meta():
             urllib.request.urlretrieve(
-                self.post_meta()['Media'], os.path.join(self.page_id, fn))
+                self.post_meta()['Media'], os.path.join(self.meta['User'],self.page_id, fn))
             print("Done.")
             print("\nMedia saved. \n")
         else:
@@ -103,6 +106,7 @@ class ProfilePage(object):
     def __init__(self, page_id):
         self.page_id = page_id
         self.data = get_data(self.page_id)
+        self.meta = self.profile_meta()
 
     def profile_meta(self):
         try:
@@ -120,5 +124,10 @@ class ProfilePage(object):
                 'Recent Posts': [post['code'] for post in data['media']['nodes']]
             }
         except KeyError:
-            return 0
-            
+            return {}
+    def get_recent_posts(self, n):
+        post_arr = self.meta['Recent Posts'][:n]
+        for post_id in post_arr:
+            post = PostPage(post_id)
+            post.save_media()
+            post.writetofile()
