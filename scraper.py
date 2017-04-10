@@ -28,7 +28,7 @@ def get_data(page_id):
             break
 
 
-def createdir(foldername): ##Make new Folder
+def createdir(foldername):  # Make new Folder
     if not os.path.exists(foldername):
         os.makedirs(foldername)
 
@@ -46,7 +46,7 @@ class PostPage(object):
         try:
             data = self.data['entry_data']['PostPage'][0]["media"]
             return {
-                'User' : data['owner']['username'],
+                'User': data['owner']['username'],
                 'Media': data['display_src'],
                 'Caption': u'%s' % data['caption'],
                 'Date': data['date'],
@@ -68,7 +68,8 @@ class PostPage(object):
                 meta = self.post_meta()
                 f.write("   ***    \n")
                 # Caption
-                f.write('Caption: \n --%s \n' % meta['Caption'])
+                cap = meta['Caption'].encode('utf-8', 'ignore')
+                f.write('Caption: \n --%s \n' % cap)
                 # Number of Likes
                 f.write('Number of likes: \n --%i \n' %
                         meta['Number of likes'])
@@ -86,14 +87,11 @@ class PostPage(object):
 
     # Save Media locally
     def save_media(self):
-        print("Loading...")
         createdir(self.meta['User'] + '/' + self.page_id)
         fn = self.page_id + '.jpg'
-        if self.post_meta():
+        if self.meta:
             urllib.request.urlretrieve(
-                self.post_meta()['Media'], os.path.join(self.meta['User'],self.page_id, fn))
-            print("Done.")
-            print("\nMedia saved. \n")
+                self.meta['Media'], os.path.join(self.meta['User'], self.page_id, fn))
         else:
             print('ERROR: No media found for the given post(page_id=%s).' %
                   self.page_id)
@@ -125,9 +123,38 @@ class ProfilePage(object):
             }
         except KeyError:
             return {}
-    def get_recent_posts(self, n):
+
+    def writetofile(self):
+        createdir(self.page_id)
+        fn = self.page_id + '.txt'
+        with open(os.path.join(self.page_id, fn), 'w') as f:
+            f.write("   ****    \n")
+            f.write("Full Name:\n%s\n\n" % self.meta['User']['Full Name'])
+            f.write("Biography:\n%s\n\n" % self.meta['User']['Biography'])
+            f.write("Website:\n%s\n\n" % self.meta['User']['Website'])
+            f.write("FaceBook:\n%s\n\n" % self.meta['User']['FaceBook Page'])
+            f.write("Followers:\n%i\n\n" % self.meta['User']['Followers'])
+            f.write("Following:\n%i\n\n" % self.meta['User']['Follows'])
+    def get_profile_picture(self):
+        createdir(self.page_id)
+        urllib.request.urlretrieve(self.meta['User']['Profile Picture'], os.path.join(self.page_id, 'profilepicture.jpg'))
+
+    def get_recent_posts(self, n=12):
         post_arr = self.meta['Recent Posts'][:n]
         for post_id in post_arr:
-            post = PostPage(post_id)
-            post.save_media()
-            post.writetofile()
+            print("Loading post '%s' ..." % post_id)
+            try:
+                post = PostPage(post_id)
+                post.save_media()
+                post.writetofile()
+            except Exception:
+                print("Failed. \n")
+            else:
+                print("Loaded.")
+    def get_everything(self):
+        try:
+            self.writetofile()
+            self.get_profile_picture()
+            self.get_recent_posts()
+        except Exception:
+            print("UNKOWN ERROR")
