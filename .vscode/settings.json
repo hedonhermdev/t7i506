@@ -1,3 +1,7 @@
 {
-    "python.linting.pylintEnabled": false
+    "python.unitTest.pyTestArgs": [
+        "."
+    ]
+,
+"python.unitTest.pyTestEnabled": false
 }
