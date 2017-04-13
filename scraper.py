@@ -5,7 +5,7 @@ import os
 import re
 import urllib.error
 import urllib.request
-import time
+
 from bs4 import BeautifulSoup, SoupStrainer
 
 
@@ -49,7 +49,7 @@ class PostPage(object):
                 'User': data['owner']['username'],
                 'Media': data['display_src'],
                 'Caption': u'%s' % data['caption'],
-                'Date': time.asctime(time.localtime(data['date'])),
+                'Date': data['date'],
                 'Number of likes': data['likes']['count'],
                 'Number of comments': data['comments']['count'],
                 'Comments': [u"@%s :: %s" % (c['user']['username'], c['text']) for c in data['comments']['nodes']],
@@ -68,7 +68,6 @@ class PostPage(object):
                 meta = self.post_meta()
                 f.write("   ***    \n")
                 # Caption
-                f.write("Posted on %s" % meta['Date'])
                 cap = meta['Caption'].encode('utf-8', 'ignore')
                 f.write('Caption: \n --%s \n' % cap)
                 # Number of Likes
@@ -156,7 +155,6 @@ class ProfilePage(object):
         try:
             self.writetofile()
             self.get_profile_picture()
-            self.get_profile_picture()
             self.get_recent_posts()
-        except Exception as e: #FIXME
-            print("UNKNOWN ERROR")
+        except Exception:
+            print("UNKOWN ERROR")
