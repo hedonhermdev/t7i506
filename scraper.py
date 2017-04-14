@@ -131,7 +131,7 @@ class ProfilePage(object):
         with open(os.path.join(self.page_id, fn), 'w') as f:
             f.write("   ****    \n")
             f.write("Full Name:\n%s\n\n" % self.meta['User']['Full Name'])
-            f.write("Biography:\n%s\n\n" % self.meta['User']['Biography'])
+            f.write("Biography:\n%s\n\n" % str(self.meta['User']['Biography'].encode('utf-8', 'ignore')))
             f.write("Website:\n%s\n\n" % self.meta['User']['Website'])
             f.write("FaceBook:\n%s\n\n" % self.meta['User']['FaceBook Page'])
             f.write("Followers:\n%i\n\n" % self.meta['User']['Followers'])
@@ -158,5 +158,5 @@ class ProfilePage(object):
             self.get_profile_picture()
             self.get_profile_picture()
             self.get_recent_posts()
-        except Exception as e: #FIXME
+        except (KeyError, UnicodeError): #FIXME
             print("UNKNOWN ERROR")
