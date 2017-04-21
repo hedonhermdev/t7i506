@@ -44,17 +44,19 @@ class PostPage(object):
 
     def post_meta(self):
         try:
-            data = self.data['entry_data']['PostPage'][0]["media"]
-            return {
-                'User': data['owner']['username'],
-                'Media': data['display_src'],
-                'Caption': u'%s' % data['caption'],
-                'Date': time.asctime(time.localtime(data['date'])),
-                'Number of likes': data['likes']['count'],
-                'Number of comments': data['comments']['count'],
-                'Comments': [u"@%s :: %s" % (c['user']['username'], c['text']) for c in data['comments']['nodes']],
-                'Code': data['code']
+            data = self.data['entry_data']['PostPage'][0]['graphql']['shortcode_media']
+            d = {
+                "Username": '@%s' % data['owner']['username'],
+                "Media": data['display_url'],
+                "Tagged Users": ['@%s' % node['node']['user']['username'] for node in
+                                 data["edge_media_to_tagged_user"]['edges']],
+                "Caption": u'%s' % data['edge_media_to_caption']['edges'][0]['node']['text'],
+                "Timestamp": time.asctime(time.localtime(data['taken_at_timestamp'])),
+                "Likes": data['edge_media_preview_like']['count'],
+                "Comments": data['edge_media_to_comment']['count'],
+                #"Location": data['location']['name'],
             }
+            return d
         except KeyError:
             return {}
 
@@ -148,7 +150,7 @@ class ProfilePage(object):
                 post = PostPage(post_id)
                 post.save_media()
                 post.writetofile()
-            except Exception:
+            except KeyError:
                 print("Failed. \n")
             else:
                 print("Loaded.")
@@ -158,5 +160,5 @@ class ProfilePage(object):
             self.get_profile_picture()
             self.get_profile_picture()
             self.get_recent_posts()
-        except (KeyError, UnicodeError): #FIXME
+        except (KeyError, UnicodeError): # FIXME
             print("UNKNOWN ERROR")
