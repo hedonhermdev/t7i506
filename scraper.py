@@ -53,8 +53,7 @@ class PostPage(object):
                 "Caption": u'%s' % data['edge_media_to_caption']['edges'][0]['node']['text'],
                 "Timestamp": time.asctime(time.localtime(data['taken_at_timestamp'])),
                 "Likes": data['edge_media_preview_like']['count'],
-                "Comments": data['edge_media_to_comment']['count'],
-                #"Location": data['location']['name'],
+                "Comments": data['edge_media_to_comment']['count']
             }
             return d
         except KeyError:
@@ -63,35 +62,33 @@ class PostPage(object):
     # Save data in a text file.
 
     def writetofile(self):
-        createdir(self.meta['User'] + '/' + self.page_id)
+        createdir(self.meta["Username"] + '/' + self.page_id)
         fn = self.page_id + '.txt'
-        with open(os.path.join(self.meta['User'], self.page_id, fn), 'w') as f:
+        with open(os.path.join(self.meta["Username"], self.page_id, fn), 'w') as f:
             if self.meta:
                 meta = self.post_meta()
                 f.write("   ***    \n")
                 # Caption
-                f.write("Posted on %s" % meta['Date'])
-                cap = meta['Caption'].encode('utf-8', 'ignore')
+                f.write("Posted on %s" % meta["Timestamp"])
+                cap = meta["Caption"].encode('utf-8', 'ignore')
                 f.write('Caption: \n --%s \n' % cap)
                 # Number of Likes
                 f.write('Number of likes: \n --%i \n' %
-                        meta['Number of likes'])
+                        meta["Likes"])
                 # Number of Comments
                 f.write('Number of comments: \n --%i \n' %
-                        meta['Number of comments'])
+                        meta["Comments"])
                 # Comments
                 f.write('Comments: \n')
-                for c in meta['Comments']:
-                    s = c.encode('ascii', 'ignore').decode('windows-1252')
-                    f.write("   --" + s + '\n')
             else:
                 f.write("ERROR: No data found for the post(page_id=%s)." %
                         self.page_id)
 
     # Save Media locally
-    def save_media(self):
-        createdir(self.meta['User'] + '/' + self.page_id)
-        fn = self.page_id + '.jpg'
+    def save_media(self, fn=None):
+        createdir(self.meta["Username"] + '/' + self.page_id)
+        if fn == None:
+            fn = self.page_id + '.jpg'
         if self.meta:
             urllib.request.urlretrieve(
                 self.meta['Media'], os.path.join(self.meta['User'], self.page_id, fn))
